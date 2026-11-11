@@ -14,51 +14,38 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 21
-
-      - uses: android-actions/setup-android@v3
-
       - name: Install Capacitor
         run: npm install
-
       - name: Copy the web app
         run: |
           mkdir -p www
           cp gotv.html www/index.html
-
       - name: Create the Android project
         run: npx cap add android
-
       - name: Landscape + fullscreen tweaks
         run: node scripts/patch-android.js
-
       - name: Sync web files into Android
         run: npx cap sync android
-
       - name: Build APK
         working-directory: android
         run: |
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon
-
       - name: Name the APK
         run: cp android/app/build/outputs/apk/debug/app-debug.apk GOtv.apk
-
-      - name: Upload APK (Actions tab, Artifacts)
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: GOtv-apk
           path: GOtv.apk
-
-      - name: Attach APK to release (tags like v1.0)
+      - name: Attach APK to release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
